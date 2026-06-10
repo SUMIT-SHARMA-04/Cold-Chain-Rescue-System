@@ -108,3 +108,31 @@ Launch the local development build server:
 Bash
 npm run dev
 The interactive dispatch panel will open locally at: http://localhost:5173
+
+🎛️ Hackathon Demo Guide ("God Mode")
+To cleanly demonstrate the automated capabilities of the platform during short judging windows, we have built an integrated Telemetry Overrides Dashboard directly into the React UI:
+
+Observe Baseline Operations: Open the dashboard. You will see several healthy trucks navigating standard paths across the map canvas.
+
+Select Target Assets: Select TRUCK-01 from the active fleet navigation rail to read its live health metrics (all stable, green meters).
+
+Inject Fault Anomaly: Locate the hidden "God Mode Control Panel" in the sidebar. Drag the Compressor Voltage slider down to 11.4V and push the Mechanical Vibration slider up to 85Hz.
+
+Trigger Simulation Pipeline: Click the "Inject Telemetry Anomaly" button. This fires an instant HTTP POST update directly to FastAPI.
+
+Watch the Rescue Sequence Executed Live:
+
+FastAPI catches the packet, forwards it to the scikit-learn background thread, and registers an immediate Failure Risk of 94%.
+
+TRUCK-01 flashes red on your map interface.
+
+The backend instantly filters out all unavailable trucks, tracks the closest available asset (TRUCK-04), calculates an intercept point, and commands both vehicles to reroute.
+
+On the dashboard map, you will see TRUCK-04 dynamically break away from its current location to execute the automated rescue sweep.
+
+👥 Contributors
+Your Name / Team Name - Core Systems Architect & Full-Stack Engineer
+
+📄 License
+This project is open-source and available under the MIT License.
+"""
