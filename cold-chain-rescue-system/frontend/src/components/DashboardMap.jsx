@@ -1,17 +1,19 @@
 import React from 'react';
 import { MapContainer, TileLayer, Marker, Popup, Polyline } from 'react-leaflet';
-import 'leaflet/dist/leaflet.css';
+import 'leaflet/dist/leaflet.css'; // CRITICAL: This makes the map look like a map
 
 export default function DashboardMap({ fleet, selectedTruck, setSelectedTruck, activeRescue }) {
-  // Center roughly on the San Francisco Bay Area (matching mock data)
   const mapCenter = [37.7549, -122.3194]; 
 
   return (
-    <MapContainer center={mapCenter} zoom={11} className="w-full h-full">
-      {/* Dark mode map tiles from Carto */}
+    <MapContainer 
+      center={mapCenter} 
+      zoom={11} 
+      style={{ height: '100%', width: '100%' }} // Inline style as a backup
+    >
       <TileLayer
         url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
-        attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+        attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
       />
 
       {fleet.map((truck) => (

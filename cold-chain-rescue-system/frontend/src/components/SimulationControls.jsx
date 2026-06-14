@@ -20,16 +20,14 @@ export default function SimulationControls({ selectedTruck }) {
       });
       alert(`Anomaly injected for ${selectedTruck.truck_id}!`);
     } catch (error) {
-      console.warn("Backend not connected. This would trigger the ML model in production.");
-      alert(`Simulation Warning: Backend offline. Cannot send fault data for ${selectedTruck.truck_id}.`);
+      alert(`Simulation Warning: Backend offline. Cannot send data.`);
     }
   };
 
   return (
     <div className="pt-4 border-t border-slate-700/50 space-y-5">
-      
       {!selectedTruck ? (
-        <p className="text-xs text-slate-500 italic">Select a vehicle on the map to unlock target overrides.</p>
+        <p className="text-xs text-slate-500 italic">Select a vehicle on the map to unlock controls.</p>
       ) : (
         <div className="space-y-4">
           <div>
