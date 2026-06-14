@@ -8,12 +8,17 @@ export default function App() {
   const [selectedTruck, setSelectedTruck] = useState(null);
   const [activeRescue, setActiveRescue] = useState(null);
 
+  // Poll the FastAPI backend every 2 seconds
   useEffect(() => {
     const fetchFleetStatus = async () => {
       try {
         const response = await fetch('http://127.0.0.1:8000/api/fleet-status/');
         const data = await response.json();
-        setFleet(data.trucks);
+        
+        // Safety check before setting the fleet
+        if (data.trucks) {
+          setFleet(data.trucks);
+        }
         
         if (data.active_rescue) {
           setActiveRescue(data.active_rescue);
@@ -21,19 +26,34 @@ export default function App() {
           setActiveRescue(null);
         }
 
-        if (selectedTruck) {
-          const updated = data.trucks.find(t => t.truck_id === selectedTruck.truck_id);
-          if (updated) setSelectedTruck(updated);
-        }
+        // Functional update prevents the infinite loop while keeping sidebar data fresh
+        setSelectedTruck((prevSelected) => {
+          if (!prevSelected) return null;
+          
+          const updated = data.trucks?.find(t => t.truck_id === prevSelected.truck_id);
+          
+          // Only update the state if the actual values changed to prevent React from re-rendering in an infinite loop
+          if (updated && (
+              updated.risk_score !== prevSelected.risk_score || 
+              updated.fleet_status !== prevSelected.fleet_status ||
+              updated.voltage !== prevSelected.voltage ||
+              updated.vibration !== prevSelected.vibration
+            )) {
+             return updated;
+          }
+          return prevSelected;
+        });
+
       } catch (error) {
-        console.error("Error fetching live fleet data (Backend offline?):", error);
+        console.error("Error fetching live fleet data (Backend might be restarting):", error);
       }
     };
 
     fetchFleetStatus();
     const interval = setInterval(fetchFleetStatus, 2000);
+    
     return () => clearInterval(interval);
-  }, [selectedTruck]);
+  }, []); // <-- The empty array guarantees this setup runs exactly once
 
   return (
     <div className="flex h-screen w-screen overflow-hidden bg-slate-950 text-slate-100 font-sans">
