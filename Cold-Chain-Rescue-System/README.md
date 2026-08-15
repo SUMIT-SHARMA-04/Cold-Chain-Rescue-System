@@ -153,4 +153,4 @@ Built with passion for the **Zuup Faraway Hackathon**.
 - **Team Lead & Full-Stack Architect** 
 
 ---
-*MIT License — Feel free to fork and build upon this architecture!*
+*MIT License — Feel free to fork and build upon this architecture!.*
