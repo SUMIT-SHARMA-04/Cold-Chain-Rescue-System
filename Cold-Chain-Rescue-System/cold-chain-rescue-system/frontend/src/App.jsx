@@ -1,0 +1,98 @@
+import React, { useState, useEffect } from 'react';
+import DashboardMap from './components/DashboardMap.jsx';
+import TelemetrySidebar from './components/TelemetrySidebar.jsx';
+import SimulationControls from './components/SimulationControls.jsx';
+
+export default function App() {
+  const [fleet, setFleet] = useState([]);
+  const [selectedTruck, setSelectedTruck] = useState(null);
+  const [activeRescue, setActiveRescue] = useState(null);
+
+  // Poll the FastAPI backend every 2 seconds
+  useEffect(() => {
+    const fetchFleetStatus = async () => {
+      try {
+        const response = await fetch('http://127.0.0.1:8000/api/fleet-status/');
+        const data = await response.json();
+        
+        // Safety check before setting the fleet
+        if (data.trucks) {
+          setFleet(data.trucks);
+        }
+        
+        if (data.active_rescue) {
+          setActiveRescue(data.active_rescue);
+        } else {
+          setActiveRescue(null);
+        }
+
+        // Functional update prevents the infinite loop while keeping sidebar data fresh
+        setSelectedTruck((prevSelected) => {
+          if (!prevSelected) return null;
+          
+          const updated = data.trucks?.find(t => t.truck_id === prevSelected.truck_id);
+          
+          // Check all ML features to ensure UI updates when any simulation parameter changes
+          if (updated && (
+              updated.risk_score !== prevSelected.risk_score || 
+              updated.fleet_status !== prevSelected.fleet_status ||
+              updated.battery_voltage !== prevSelected.battery_voltage ||
+              updated.engine_vibration_hz !== prevSelected.engine_vibration_hz ||
+              updated.cargo_internal_temp_c !== prevSelected.cargo_internal_temp_c ||
+              updated.ambient_external_temp_c !== prevSelected.ambient_external_temp_c ||
+              updated.compressor_current_draw !== prevSelected.compressor_current_draw ||
+              updated.coolant_pressure_psi !== prevSelected.coolant_pressure_psi ||
+              updated.door_status !== prevSelected.door_status ||
+              updated.compressor_status !== prevSelected.compressor_status ||
+              updated.current_cargo_volume !== prevSelected.current_cargo_volume ||
+              updated.trip_duration_hours !== prevSelected.trip_duration_hours ||
+              updated.truck_age_years !== prevSelected.truck_age_years ||
+              updated.carrier_id !== prevSelected.carrier_id
+            )) {
+             return updated;
+          }
+          return prevSelected;
+        });
+
+      } catch (error) {
+        console.error("Error fetching live fleet data (Backend might be restarting):", error);
+      }
+    };
+
+    fetchFleetStatus();
+    const interval = setInterval(fetchFleetStatus, 2000);
+    
+    return () => clearInterval(interval);
+  }, []); // <-- The empty array guarantees this setup runs exactly once
+
+  return (
+    <div className="flex h-screen w-screen overflow-hidden bg-slate-950 text-slate-100 font-sans">
+      
+      {/* Left Area: Controls and Map */}
+      <div className="flex flex-col flex-1 relative h-screen">
+        
+        {/* Top Floating Control Bar */}
+        <div className="absolute top-4 left-4 z-[1000] w-80 bg-slate-900/90 backdrop-blur border border-slate-800 rounded-xl p-4 shadow-2xl">
+          <h1 className="text-lg font-bold tracking-wide text-indigo-400">COLD-CHAIN COMMAND</h1>
+          <p className="text-xs text-slate-400 mt-1">Predictive IoT Spatial Dispatch</p>
+          <SimulationControls selectedTruck={selectedTruck} />
+        </div>
+
+        {/* The Live Mapping Engine */}
+        <div className="w-full h-full relative z-0">
+          <DashboardMap 
+            fleet={fleet} 
+            selectedTruck={selectedTruck} 
+            setSelectedTruck={setSelectedTruck}
+            activeRescue={activeRescue}
+          />
+        </div>
+      </div>
+
+      {/* Right Area: Telemetry Status Deck */}
+      <div className="w-96 border-l border-slate-800 bg-slate-900/50 backdrop-blur p-6 overflow-y-auto z-[1000]">
+        <TelemetrySidebar selectedTruck={selectedTruck} activeRescue={activeRescue} />
+      </div>
+    </div>
+  );
+}
